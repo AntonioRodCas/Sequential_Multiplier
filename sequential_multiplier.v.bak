@@ -1,0 +1,86 @@
+ /*********************************************************
+ * Description:
+ * This module is a sequential of two two's complement numbers
+ * 	Inputs:
+ *			start: 			Start input signal
+ *			Multiplier: 	Multiplier Input data
+ *			Multiplicand: 	Multiplicand Input data
+ *			clk:				Clock input data
+ *			reset:			Asyncronous reset input data
+ *		Outputs:
+ *			ready: 			Ready output flag signal
+ *			Product: 		Product (result) output data
+ *
+ *	Author:  Antonio Rodríguez    md193781   ITESO 
+ *	Date:    27/09/18
+ *
+ **********************************************************/
+module sequential_multiplier
+#(
+	parameter WORD_LENGTH = 8								//Input parameter definition
+)
+
+(	
+	input start,
+	input [WORD_LENGTH-1:0] Multiplier,	
+	input [WORD_LENGTH-1:0] Multiplicand,	
+	input clk,
+	input reset,
+	
+	output ready,
+	output [(WORD_LENGTH*2)-1:0] Product
+);
+
+reg [WORD_LENGTH-1:0] C_reg;
+wire [WORD_LENGTH:0] carry_w;
+
+
+	always@(A,B,control) begin
+		case (control[3:0])
+			4'b0000: C_reg = A+B;   								//Addition
+			4'b0001: C_reg = A-B;									//Substraction
+			4'b0010: C_reg = A*B;									//Multiplication
+			4'b0011: C_reg = ~A;										//Negation
+			4'b0100: C_reg = ~A+ 1'b1;             			//Two's complement
+			4'b0101: C_reg = A&B;									//AND	
+			4'b0110: C_reg = A|B;									//OR
+			4'b0111: C_reg = A^B;									//XOR
+			4'b1000: begin
+							if (control[4]) begin  						//Shift left
+								case (B[3:0])
+									4'b0001: C_reg = A<<1;   								//Shift left 1 position
+									4'b0010: C_reg = A<<2;   								//Shift left 2 position
+									4'b0011: C_reg = A<<3;   								//Shift left 3 position
+								   4'b0100: C_reg = A<<4;   								//Shift left 4 position
+									4'b0101: C_reg = A<<5;   								//Shift left 5 position
+									4'b0110: C_reg = A<<6;   								//Shift left 6 position
+									4'b0111: C_reg = A<<7;   								//Shift left 7 position
+									4'b1000: C_reg = A<<8;   								//Shift left 8 position
+									default: C_reg = A;
+								endcase
+								end
+							else	begin										//Shift rigth 
+								case (B[3:0])
+									4'b0001: C_reg = A>>1;   								//Shift rigth 1 position
+									4'b0010: C_reg = A>>2;   								//Shift rigth 2 position
+									4'b0011: C_reg = A>>3;   								//Shift rigth 3 position
+								   4'b0100: C_reg = A>>4;   								//Shift rigth 4 position
+									4'b0101: C_reg = A>>5;   								//Shift rigth 5 position
+									4'b0110: C_reg = A>>6;   								//Shift rigth 6 position
+									4'b0111: C_reg = A>>7;   								//Shift rigth 7 position
+									4'b1000: C_reg = A>>8;   								//Shift rigth 8 position
+									default: C_reg = A;
+								endcase
+								end
+						end
+			default: C_reg = A;											//Default
+		endcase	
+	
+	end
+
+assign C = C_reg;									//Assign result to the output
+assign carry_w = A+B;    						//carry temporal register 
+assign carry[0] = carry_w[WORD_LENGTH];	//Assign carry to the output
+
+
+endmodule
